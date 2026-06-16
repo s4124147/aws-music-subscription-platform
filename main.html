@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Main – Music App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+
+    /* ── NAV BAR ── */
+    nav {
+      background: #1a1a2e;
+      color: white;
+      padding: 14px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav .brand { font-size: 20px; font-weight: bold; }
+    nav a {
+      color: #a5b4fc;
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    nav a:hover { color: white; text-decoration: underline; }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 960px; margin: 30px auto; padding: 0 20px; }
+    .section {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .section h2 {
+      font-size: 17px;
+      color: #1a1a2e;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e0e7ff;
+      padding-bottom: 10px;
+    }
+
+    /* ── USER AREA ── */
+    #user-name-display {
+      font-size: 22px;
+      font-weight: bold;
+      color: #4f46e5;
+    }
+
+    /* ── SUBSCRIPTION AREA ── */
+    .song-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+    .song-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      width: 170px;
+      text-align: center;
+      background: #fafafa;
+    }
+    .song-card img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .song-card .song-title  { font-weight: bold; font-size: 13px; margin-bottom: 3px; }
+    .song-card .song-artist { font-size: 12px; color: #555; margin-bottom: 2px; }
+    .song-card .song-year   { font-size: 11px; color: #888; margin-bottom: 8px; }
+    .song-card .song-album  { font-size: 11px; color: #888; margin-bottom: 8px; }
+
+    button.remove-btn {
+      background: #dc2626;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button.remove-btn:hover { background: #b91c1c; }
+
+    button.subscribe-btn {
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button.subscribe-btn:hover   { background: #15803d; }
+    button.subscribe-btn:disabled { background: #86efac; cursor: not-allowed; }
+
+    #sub-empty {
+      color: #888;
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    /* ── QUERY AREA ── */
+    .query-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .query-grid label { font-size: 13px; font-weight: bold; color: #444; display: block; margin-bottom: 4px; }
+    .query-grid input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    .query-grid input:focus { border-color: #4f46e5; }
+
+    button.query-btn {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button.query-btn:hover    { background: #4338ca; }
+    button.query-btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    #query-result { margin-top: 18px; }
+    #query-msg {
+      color: #dc2626;
+      font-size: 14px;
+      font-style: italic;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="brand">🎵 Music App</div>
+  <a onclick="logout()">Logout</a>
+</nav>
+
+<div class="container">
+
+  <!-- 1. USER AREA -->
+  <div class="section">
+    <h2>👤 User Area</h2>
+    <p>Welcome, <span id="user-name-display">–</span></p>
+  </div>
+
+  <!-- 2. SUBSCRIPTION AREA -->
+  <div class="section">
+    <h2>📋 My Subscriptions</h2>
+    <div id="sub-container">
+      <p id="sub-empty">Loading subscriptions...</p>
+    </div>
+  </div>
+
+  <!-- 3. QUERY AREA -->
+  <div class="section">
+    <h2>🔍 Query Music</h2>
+    <div class="query-grid">
+      <div>
+        <label>Title</label>
+        <input type="text" id="q-title" placeholder="Song title">
+      </div>
+      <div>
+        <label>Year</label>
+        <input type="text" id="q-year" placeholder="e.g. 2023">
+      </div>
+      <div>
+        <label>Artist</label>
+        <input type="text" id="q-artist" placeholder="Artist name">
+      </div>
+      <div>
+        <label>Album</label>
+        <input type="text" id="q-album" placeholder="Album name">
+      </div>
+    </div>
+
+    <button class="query-btn" id="query-btn" onclick="queryMusic()">Query</button>
+
+    <div id="query-msg"></div>
+    <div id="query-result" class="song-grid"></div>
+  </div>
+
+</div>
+
+<script>
+  
+ const API_BASE = window.APP_CONFIG?.API_BASE || "http://localhost:5000";
+
+  // ── SESSION CHECK ──────────────────────────────────────────────────────────
+  const userEmail = sessionStorage.getItem("email");
+  const userName  = sessionStorage.getItem("user_name");
+
+  function guardSession() {
+    if (!sessionStorage.getItem("email") || !sessionStorage.getItem("user_name")) {
+      window.location.replace("login.html");
+    }
+  }
+
+
+  guardSession();
+
+
+  window.addEventListener("pageshow", function () {
+    guardSession();
+  });
+
+document.getElementById("user-name-display").textContent = userName;
+
+  // ── LOGOUT ─────────────────────────────────────────────────────────────────
+  function logout() {
+    sessionStorage.clear();
+    window.location.replace("login.html");
+  }
+
+  // ── HELPER: normalise image URL ────────────────────────────────────────────
+  function fixImageUrl(url) {
+    if (!url) return "";
+    return url.replace("s3.amazonaws.com", "s3.us-east-1.amazonaws.com");
+  }
+
+  // ── HELPER: clean composite key titles (e.g. "Song#Artist" → "Song") ──────
+  function cleanTitle(title) {
+    return title ? title.split("#")[0] : "";
+  }
+
+  // ── LOAD SUBSCRIPTIONS ─────────────────────────────────────────────────────
+  async function loadSubscriptions() {
+  const container = document.getElementById("sub-container");
+  container.innerHTML = `<p id="sub-empty">Loading subscriptions...</p>`;
+
+  try {
+    const res  = await fetch(`${API_BASE}/subscribe?email=${encodeURIComponent(userEmail)}`);
+    const data = await res.json();
+    const subs = Array.isArray(data) ? data : (data.items || []);
+
+    subscribedSet.clear(); // reset
+
+    subs.forEach(song => {
+      const id = song.song_id || `${song.artist}#${song.title}`;
+      subscribedSet.add(id);
+    });
+
+    container.innerHTML = "";
+
+    if (!subs || subs.length === 0) {
+      container.innerHTML = `<p id="sub-empty">No subscriptions yet.</p>`;
+      return;
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "song-grid";
+
+    subs.forEach(song => {
+      const card = createSongCard(song, "remove");
+      grid.appendChild(card);
+    });
+
+    container.appendChild(grid);
+
+  } catch (err) {
+    container.innerHTML = `<p id="sub-empty">Could not load subscriptions.</p>`;
+  }
+  }
+
+  // ── CREATE SONG CARD ───────────────────────────────────────────────────────
+  function createSongCard(song, mode) {
+    const card = document.createElement("div");
+    card.className = "song-card";
+
+    const songId = song.song_id || `${song.artist}#${song.title}`;
+    card.dataset.id = songId;   
+
+    const imgUrl = fixImageUrl(song.image_url || "");
+    const title  = cleanTitle(song.title || "");
+    const artist = song.artist || "";
+    const year   = song.year   || "";
+    const album  = song.album  || "";
+
+    card.innerHTML = `
+      <img src="${imgUrl}" alt="${artist}" onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
+      <div class="song-title">${title}</div>
+      <div class="song-artist">${artist}</div>
+      <div class="song-album">${album}</div>
+      <div class="song-year">${year}</div>
+    `;
+
+    if (mode === "remove") {
+      const btn = document.createElement("button");
+      btn.className   = "remove-btn";
+      btn.textContent = "Remove";
+      btn.onclick     = () => removeSubscription(song, btn);
+      card.appendChild(btn);
+
+    } else {
+      const btn = document.createElement("button");
+      btn.className = "subscribe-btn";
+
+      const songId = song.song_id || `${song.artist}#${song.title}`;
+
+      if (subscribedSet.has(songId)) {
+        btn.textContent = "Subscribed ✓";
+        btn.disabled = true;
+      } else {
+        btn.textContent = "Subscribe";
+        btn.onclick = () => subscribe(song, btn);
+      }
+
+      card.appendChild(btn);
+    }
+
+    return card;
+  }
+
+  // ── SUBSCRIBE ──────────────────────────────────────────────────────────────
+  async function subscribe(song, btn) {
+    btn.disabled    = true;
+    btn.textContent = "Subscribing...";
+
+    try {
+      const res = await fetch(`${API_BASE}/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email:     userEmail,
+          title:     song.title,
+          artist:    song.artist,
+          year:      song.year,
+          album:     song.album,
+          image_url: song.image_url
+        })
+      });
+
+      if (res.status === 409) {
+        btn.textContent = "Already subscribed";
+        btn.disabled = true;
+        return;
+
+      } else if (res.ok) {
+        
+        btn.textContent = "Subscribed ✓";
+        loadSubscriptions();
+        return;
+
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Subscribe";
+      }
+    } catch (err) {
+      btn.disabled    = false;
+      btn.textContent = "Subscribe";
+    }
+  }
+
+  // ── REMOVE SUBSCRIPTION ────────────────────────────────────────────────────
+  async function removeSubscription(song, btn) {
+  btn.disabled = true;
+  btn.textContent = "Removing...";
+
+  const songId = song.song_id || `${song.artist}#${song.title}`;
+
+  try {
+    const res = await fetch(`${API_BASE}/subscribe`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: userEmail,
+        song_id: songId
+      })
+    });
+
+    if (res.ok) {
+      subscribedSet.delete(songId);
+
+      const subCard = btn.closest(".song-card");
+      if (subCard) subCard.remove();
+
+      document.querySelectorAll(".song-card").forEach(card => {
+        if (card.dataset.id === songId) {
+          const subBtn = card.querySelector(".subscribe-btn");
+          if (subBtn) {
+            subBtn.disabled = false;
+            subBtn.textContent = "Subscribe";
+            subBtn.onclick = () => subscribe(song, subBtn);
+          }
+        }
+      });
+
+      loadSubscriptions();
+    } else {
+      btn.disabled = false;
+      btn.textContent = "Remove";
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = "Remove";
+  }
+}
+
+  // ── QUERY MUSIC ────────────────────────────────────────────────────────────
+  async function queryMusic() {
+    const title  = document.getElementById("q-title").value.trim();
+    const year   = document.getElementById("q-year").value.trim();
+    const artist = document.getElementById("q-artist").value.trim();
+    const album  = document.getElementById("q-album").value.trim();
+    const msgEl  = document.getElementById("query-msg");
+    const resultEl = document.getElementById("query-result");
+    const btn    = document.getElementById("query-btn");
+
+    msgEl.textContent    = "";
+    resultEl.innerHTML   = "";
+
+    // At least one field required
+    if (!title && !year && !artist && !album) {
+      msgEl.textContent = "Please fill in at least one search field.";
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = "Searching...";
+
+    const params = new URLSearchParams();
+    if (title)  params.append("title",  title);
+    if (year)   params.append("year",   year);
+    if (artist) params.append("artist", artist);
+    if (album)  params.append("album",  album);
+
+    
+
+    try {
+      const res  = await fetch(`${API_BASE}/music?${params.toString()}`);
+      const data = await res.json();
+      const songs = Array.isArray(data) ? data : (data.items || []);
+
+  
+
+      if (!songs || songs.length === 0) {
+        msgEl.textContent = "No result is retrieved. Please query again";
+        return;
+      }
+
+      songs.forEach(song => {
+        const card = createSongCard(song, "subscribe");
+        resultEl.appendChild(card);
+      });
+
+    } catch (err) {
+      msgEl.textContent = "Error connecting to server.";
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "Query";
+    }
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────────────────
+  loadSubscriptions();
+</script>
+
+
+
+
+</body>
+</html>

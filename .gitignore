@@ -1,0 +1,12 @@
+@"
+.env
+config.js
+__pycache__/
+*.pyc
+.DS_Store
+*.zip
+*_report.pdf
+*_worklog.pdf
+s4041099*
+*.log
+"@ | Set-Content .gitignore

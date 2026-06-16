@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login – Music App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: white;
+      padding: 40px 36px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 380px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      color: #1a1a2e;
+      font-size: 24px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 18px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus { border-color: #4f46e5; }
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #4338ca; }
+    button:disabled { background: #a5b4fc; cursor: not-allowed; }
+    #error-msg {
+      color: #dc2626;
+      font-size: 13px;
+      text-align: center;
+      margin-top: 12px;
+      min-height: 18px;
+    }
+    .register-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #555;
+    }
+    .register-link a {
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .register-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🎵 Music App</h1>
+  <p class="subtitle">Sign in to your account</p>
+
+  <label for="email">Email</label>
+  <input type="email" id="email" placeholder="your@email.com">
+
+  <label for="password">Password</label>
+  <input type="password" id="password" placeholder="Enter password"
+         onkeydown="if(event.key==='Enter') login()">
+
+  <button id="login-btn" onclick="login()">Login</button>
+  <div id="error-msg"></div>
+
+  <div class="register-link">
+    Don't have an account? <a href="register.html">Register</a>
+  </div>
+</div>
+
+<script>
+  const API_BASE = window.APP_CONFIG?.API_BASE || "http://localhost:5000";
+
+  async function login() {
+    const email    = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const errorEl  = document.getElementById("error-msg");
+    const btn      = document.getElementById("login-btn");
+
+    errorEl.textContent = "";
+
+    if (!email || !password) {
+      errorEl.textContent = "Please enter email and password.";
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = "Signing in...";
+
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.user_name) {
+        // Store session info
+        sessionStorage.setItem("email",     data.email     || email);
+        sessionStorage.setItem("user_name", data.user_name);
+        window.location.href = "main.html";
+      } else {
+        errorEl.textContent = "email or password is invalid";
+      }
+    } catch (err) {
+      errorEl.textContent = "email or password is invalid";
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "Login";
+    }
+  }
+
+  // Redirect to main if already logged in
+  if (sessionStorage.getItem("user_name")) {
+    window.location.href = "main.html";
+  }
+</script>
+
+</body>
+</html>
